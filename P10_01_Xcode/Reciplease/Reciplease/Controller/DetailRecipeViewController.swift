@@ -30,6 +30,7 @@ class DetailRecipeViewController: UIViewController {
         let coreDataRecipe = appdelegate.coreDataRecipe
         coreDataManager = CoreDataManager(coreDataRecipe: coreDataRecipe)
         
+        
         displayRecipe()
         configRightButtonNavBar()
     }
