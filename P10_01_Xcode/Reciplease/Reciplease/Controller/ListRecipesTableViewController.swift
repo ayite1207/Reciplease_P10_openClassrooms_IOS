@@ -9,19 +9,32 @@ import UIKit
 
 class ListRecipesTableViewController: UITableViewController {
 
-    var listRecipes : Recipes?
-    var detailRecipe : Recipe?
+//    var listRecipes : Recipes?
+    var detailRecipe : InfoRecipe?
+    
+    private var coreDataManager: CoreDataManager?
+    var favoriteTabRecipe : [Recipe] = []
+    var listRecipes : ListeInfoRecipes?
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("listRecipes test :: \(listRecipes?.hits.count)")
+        
+        guard let appdelegate = UIApplication.shared.delegate as? AppDelegate else { return }
+        
+        let coreDataRecipe = appdelegate.coreDataRecipe
+        coreDataManager = CoreDataManager(coreDataRecipe: coreDataRecipe)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        tableView.reloadData()
     }
 
     // MARK: - Table view data source
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        return listRecipes?.hits.count ?? 0
+        return listRecipes?.listInfoRecipe.count ?? 0
         
     }
 
@@ -29,7 +42,7 @@ class ListRecipesTableViewController: UITableViewController {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath) as? RecipiesTableViewCell else{
             return UITableViewCell()
         }
-        cell.recipe = listRecipes?.hits[indexPath.row].recipe
+        cell.recipe = listRecipes?.listInfoRecipe[indexPath.row]
         return cell
     }
     
@@ -38,9 +51,18 @@ class ListRecipesTableViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let recipe = listRecipes?.hits[indexPath.row].recipe else { return }
+        guard let recipe = listRecipes?.listInfoRecipe[indexPath.row] else { return }
         detailRecipe = recipe
         performSegue(withIdentifier: "detailRecipe", sender: nil)
+    }
+    
+    override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+        return "Hello, you have no favorites recipes"
+    }
+    
+    override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        let recipes = coreDataManager?.favoriteRecipes
+        return listRecipes?.listInfoRecipe.count == 0 ? 200 : 0
     }
 
     /*

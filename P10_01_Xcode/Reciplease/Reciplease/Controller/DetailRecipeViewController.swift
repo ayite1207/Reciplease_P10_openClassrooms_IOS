@@ -13,13 +13,11 @@ class DetailRecipeViewController: UIViewController {
 
     @IBOutlet weak var recipeImage: UIImageView!
     @IBOutlet weak var titleRecipeLabel: UILabel!
-    @IBOutlet weak var ingredientRecipeLabel: UILabel!
     @IBOutlet weak var showRecipeButton: UIButton!
-    @IBOutlet weak var ingredientsLabel: UILabel!
     
     // MARK: Properties
     
-    var detailRecipe : Recipe?
+    var detailRecipe : InfoRecipe?
     var star : String = "star"
     private var coreDataManager: CoreDataManager?
         
@@ -29,8 +27,6 @@ class DetailRecipeViewController: UIViewController {
         guard let appdelegate = UIApplication.shared.delegate as? AppDelegate else { return }
         let coreDataRecipe = appdelegate.coreDataRecipe
         coreDataManager = CoreDataManager(coreDataRecipe: coreDataRecipe)
-        
-        
         displayRecipe()
         configRightButtonNavBar()
     }
@@ -42,15 +38,12 @@ class DetailRecipeViewController: UIViewController {
             let stringPicture = recipe.image
             let urlPicture =  URL(string: stringPicture )
             recipeImage.load(url: urlPicture!)
-            titleRecipeLabel.text = recipe.label
-            ingredientRecipeLabel.text = "Ingrédients"
-            recipe.ingredientLines.forEach { (ingredient) in
-                ingredientsLabel.text! += "- \(ingredient)\n"
-            }
+            titleRecipeLabel.text = recipe.title
         }
     }
     
     private func configRightButtonNavBar(){
+        star = checkIfEntityExist() ? "starFill" : "star"
         let starImage = UIImage(named: star)
             navigationItem.rightBarButtonItem = UIBarButtonItem(image: starImage, style: .plain, target: self, action: #selector(addFavorite))
         
@@ -59,20 +52,36 @@ class DetailRecipeViewController: UIViewController {
     @objc private func addFavorite(){
         print("addFavorite")
         
-        guard let label = detailRecipe?.label, let image = detailRecipe?.image else { return }
-        coreDataManager?.createFavoriteRecipe(label: label, image: image)
+        guard let label = detailRecipe?.title,let image = detailRecipe?.image, let ingredients = detailRecipe?.ingredients,let url = detailRecipe?.url else { return }
+        print("someEntityExists ::  \(coreDataManager?.someEntityExists(tilte: label))")
         
-        star = star == "star" ? "starFill" : "star"
-        configRightButtonNavBar()
+        if !checkIfEntityExist() {
+            coreDataManager?.createFavoriteRecipe(label: label, image: image, ingredients: ingredients, url: url)
+            configRightButtonNavBar()
+        } else {
+            guard let titleRecipe = detailRecipe?.title else { return }
+            coreDataManager?.deleteRecipe(title: titleRecipe)
+            configRightButtonNavBar()
+        }
+       
     }
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    
+    private func checkIfEntityExist() -> Bool{
+        guard let label = detailRecipe?.title, let checkIfEntityExist = coreDataManager?.someEntityExists(tilte: label)else { return false}
+        return checkIfEntityExist
     }
-    */
+}
 
+extension DetailRecipeViewController : UITableViewDelegate, UITableViewDataSource {
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return detailRecipe?.ingredients.count ?? 0
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "ingredientsCell", for: indexPath)
+        
+        cell.textLabel?.text = detailRecipe?.ingredients[indexPath.row]
+        return cell
+    } 
 }

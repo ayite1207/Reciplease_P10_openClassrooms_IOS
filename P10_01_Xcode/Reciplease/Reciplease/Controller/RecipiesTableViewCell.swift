@@ -13,10 +13,10 @@ class RecipiesTableViewCell: UITableViewCell {
     @IBOutlet weak var recipeTitleLabel: UILabel!
     @IBOutlet weak var recipeTextLabel: UILabel!
     
-    var recipe : Recipe? {
+    var recipe : InfoRecipe? {
         didSet {
-            recipeTitleLabel.text = recipe?.label
-            recipeTextLabel.text = recipe?.ingredientLines.joined(separator: ", ")
+            recipeTitleLabel.text = recipe?.title
+            recipeTextLabel.text = recipe?.ingredients.joined(separator: ", ")
             if let url = URL(string: recipe!.image) {
                 recipeImageView.load(url: url)
             } else {

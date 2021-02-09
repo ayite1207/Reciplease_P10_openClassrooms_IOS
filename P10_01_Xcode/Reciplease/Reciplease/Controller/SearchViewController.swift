@@ -21,8 +21,12 @@ class SearchRecipesViewController: UIViewController {
     
     var recipes = RecipesService()
     var listIngredients : [String] = []
-    var listeRecipes : Recipes?
-    
+    var listeRecipes : ListeInfoRecipes?
+    private var coreDataManager: CoreDataManager?
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+    }
     //MARK: - Actions
     
     @IBAction func addIngrédients(_ sender: Any) {
@@ -54,14 +58,30 @@ class SearchRecipesViewController: UIViewController {
             switch result {
             case .success(let recipes):
                 DispatchQueue.main.async {
-                    self.listeRecipes = recipes
+                    listeRecipes = prepareListeInfoRecipes(recipes : recipes)
+//                    self.listeRecipes = recipes
                     performSegue(withIdentifier: "displayRecipies", sender: nil)
-                    print(recipes.hits[0].recipe.label)
                 }
             case .failure(let error):
                 self.showAlert(with: error.description)
             }
         }
+    }
+    
+    private func prepareListeInfoRecipes(recipes : Recipes?) -> ListeInfoRecipes {
+        var listInfoRecipes = ListeInfoRecipes()
+        if let recipesListe = recipes {
+            for recipe in recipesListe.hits {
+                let image = recipe.recipe.image
+                let title = recipe.recipe.label
+                let subTitle = recipe.recipe.image
+                let ingredients = recipe.recipe.ingredientLines
+                let url = recipe.recipe.url
+                let infoRecipe = InfoRecipe(title: title, subtitle: subTitle, ingredients: ingredients, image: image, url: url)
+                listInfoRecipes.listInfoRecipe.append(infoRecipe)
+            }
+        }
+        return listInfoRecipes
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
@@ -90,4 +110,3 @@ extension SearchRecipesViewController : UITableViewDelegate, UITableViewDataSour
     }
     
 }
-
